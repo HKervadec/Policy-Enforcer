@@ -2,7 +2,9 @@
 
 from external_com import ExternalManager
 from internal_com import InternalManager
+
 from policy.quota_alarm import QuotaAlarm
+from policy.sample_rate import SampleRate
 
 import socket
 import re
@@ -21,7 +23,7 @@ class PolicyEnforcer():
         self.int_address = int_address
         self.int_port = int_port
 
-        self.policy_collection = [QuotaAlarm()]
+        self.policy_collection = [QuotaAlarm(), SampleRate(1)]
 
         self.chaussette = self.create_chaussette()
 

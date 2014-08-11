@@ -2,7 +2,7 @@
 
 from base_policy import BasePolicy
 
-import re
+from common import extract_token
 
 
 class QuotaAlarm(BasePolicy):
@@ -13,8 +13,6 @@ class QuotaAlarm(BasePolicy):
 
     def test_request(self, s_request):
         """
-        X-Auth-Token: 6a9aac95bf8a49bcac02db661c42c1cd
-        Will extract the token of the request.
         Then, test if the token has made < 2 requests since the launch
         of the application
 
@@ -27,19 +25,13 @@ class QuotaAlarm(BasePolicy):
 
         self.is_alarm = True
 
-        for part in s_request:
-            grouped = re.match(r"X-Auth-Token: ([a-f\d]+)", part)
+        token = extract_token(s_request)
+        self.last_token = token
 
-            if grouped:
-                token = grouped.group(1)
-                self.last_token = token
+        if not token in self.token_memory:
+            self.token_memory[token] = 0
 
-                if not token in self.token_memory:
-                    self.token_memory[token] = 0
-
-                return self.token_memory[token] < 2
-
-        return True
+        return self.token_memory[token] < 2
 
     def test_response(self, response):
         """

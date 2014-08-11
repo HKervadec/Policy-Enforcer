@@ -9,7 +9,7 @@ class BasePolicy():
         """
         Test a request
 
-        :param request: str The request
+        :param s_request: str The request
         :return: True is pass the test, False otherwise
         :rtype: bool
         """
