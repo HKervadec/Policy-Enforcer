@@ -67,7 +67,7 @@ class PolicyEnforcer():
         decision = self.test_request(request)
 
         response = int_manager.get_response(request, decision, self.ext_port)
-        self.test_response(response)
+        self.analyze_response(response)
 
         print("Sending response...")
         ext_manager.send_response(response)
@@ -93,10 +93,10 @@ class PolicyEnforcer():
 
         return result
 
-    def test_response(self, response):
+    def analyze_response(self, response):
         """
         Will test the API response for each policy in the collection (self.policy_collection)
-        It will call their test_response methods.
+        It will call their analyze_response methods.
 
         Can be useful for quota system for instance: increment the utilization
         only if the response is not an error.
@@ -106,7 +106,7 @@ class PolicyEnforcer():
         """
 
         for policy in self.policy_collection:
-            policy.test_response(response)
+            policy.analyze_response(response)
 
 
 # ##########################
