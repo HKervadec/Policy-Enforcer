@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
+import socket
+import re
+import threading
+
 from external_com import ExternalManager
 from internal_com import InternalManager
 
 from policy.quota_alarm import QuotaAlarm
 from policy.sample_rate import SampleRate
-
-import socket
-import re
 
 
 class PolicyEnforcer():
@@ -24,6 +25,7 @@ class PolicyEnforcer():
         self.int_port = int_port
 
         self.policy_collection = [QuotaAlarm(), SampleRate(1)]
+        self.max_thread = 5
 
         self.chaussette = self.create_chaussette()
 
@@ -51,9 +53,12 @@ class PolicyEnforcer():
         :rtype: None
         """
         while True:
+            if threading.active_count() > self.max_thread:
+                continue
+
             (chaussette_client, address) = self.chaussette.accept()
 
-            self.process_request(chaussette_client)
+            threading.Thread(target=self.process_request, args=[chaussette_client]).start()
 
     def process_request(self, chaussette_client):
         """
