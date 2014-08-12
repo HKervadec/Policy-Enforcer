@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from time import time
+from collections import deque
 
 from base_policy import BasePolicy
 from common import extract_token
@@ -12,7 +13,9 @@ class SampleRate(BasePolicy):
 
         self.last_token = ""
         self.last_successful_post = {}
+        self.token_buffer = {}
 
+        self.post_per_min = post_per_minute
         self.rate = 60. / post_per_minute
 
     def identify_request(self, s_request):
@@ -22,12 +25,29 @@ class SampleRate(BasePolicy):
         token = extract_token(s_request)
         self.last_token = token
 
-        try:
-            delta = time() - self.last_successful_post[token]
+        if not token in self.token_buffer:
+            self.token_buffer[token] = deque(maxlen=self.post_per_min)
 
-            return delta > self.rate
-        except KeyError:
-            return True
+        self.token_buffer[token].append(time())
+
+        return self.evaluate_buffer(self.token_buffer[token])
+
+    def evaluate_buffer(self, buff):
+        """
+        Will count how much of the last posts have been made in the last minute
+
+        :param buff: The buffer
+        :return: True if less than the max post per minute, false otherwise
+        :rtype: bool
+        """
+        count = 0
+        now = time()
+
+        for date in buff:
+            if now - date > 60:
+                count += 1
+
+        return count < self.post_per_min
 
     def test_response(self, response):
         """
@@ -37,8 +57,8 @@ class SampleRate(BasePolicy):
 
         :param response: The response
         """
-        if self.success_post(response):
-            self.last_successful_post[self.last_token] = time()
+        if not self.success_post(response):
+            self.token_buffer[self.last_token].pop()
 
     @staticmethod
     def success_post(response):
