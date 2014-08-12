@@ -2,10 +2,10 @@
 
 from base_policy import BasePolicy
 
-from common import extract_token
+from common import extract_token, identify_create_alarm
 
 
-class QuotaAlarm(BasePolicy):
+class AlarmQuota(BasePolicy):
     def __init__(self):
         BasePolicy.__init__(self)
 
@@ -14,7 +14,8 @@ class QuotaAlarm(BasePolicy):
         self.last_token = ""
 
     def identify_request(self, s_request):
-        return s_request[0] == 'POST /v2/alarms HTTP/1.1'
+        # return s_request[0] == 'POST /v2/alarms HTTP/1.1'
+        return identify_create_alarm(s_request)
 
     def decide_fate(self, s_request):
         token = extract_token(s_request)

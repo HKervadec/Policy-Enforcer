@@ -17,3 +17,7 @@ def extract_token(s_request):
 
         if grouped:
             return grouped.group(1)
+
+
+def identify_create_alarm(s_request):
+    return s_request[0] == 'POST /v2/alarms HTTP/1.1'

@@ -7,14 +7,16 @@ import threading
 from external_com import ExternalManager
 from internal_com import InternalManager
 
-from policy.quota_alarm import QuotaAlarm
+from policy.alarm_quota import AlarmQuota
+from policy.alarm_period import AlarmPeriod
 from policy.sample_rate import SampleRate
 
 
 class PolicyEnforcer():
     def __init__(self, ext_port=9001,
                  int_address='qos107.research.att.com',
-                 int_port=8777):
+                 int_port=8777,
+                 max_thread=5):
         """
         :param ext_port: int the port to access the policy enforcer
         :param int_address: str the address of the api
@@ -23,9 +25,9 @@ class PolicyEnforcer():
         self.ext_port = ext_port
         self.int_address = int_address
         self.int_port = int_port
+        self.max_thread = max_thread
 
-        self.policy_collection = [QuotaAlarm(), SampleRate(1)]
-        self.max_thread = 5
+        self.policy_collection = [AlarmQuota(), AlarmPeriod(1200), SampleRate(1)]
 
         self.chaussette = self.create_chaussette()
 
@@ -39,7 +41,7 @@ class PolicyEnforcer():
         chaussette = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         chaussette.bind((socket.gethostname(), self.ext_port))
 
-        chaussette.listen(5)
+        chaussette.listen(self.max_thread)
 
         return chaussette
 
@@ -109,7 +111,6 @@ class PolicyEnforcer():
         :param response: str The response
         :rtype: None
         """
-
         for policy in self.policy_collection:
             policy.analyze_response(response)
 
