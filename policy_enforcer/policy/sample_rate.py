@@ -12,11 +12,11 @@ class SampleRate(BasePolicy):
         BasePolicy.__init__(self)
 
         self.last_token = ""
-        self.last_successful_post = {}
+        self.last_request = 0
+
         self.token_buffer = {}
 
         self.post_per_min = post_per_minute
-        self.rate = 60. / post_per_minute
 
     def identify_request(self, s_request):
         return 'POST /v2/meters/' in s_request[0]
@@ -25,10 +25,11 @@ class SampleRate(BasePolicy):
         token = extract_token(s_request)
         self.last_token = token
 
+        self.last_request = time()
+
         if not token in self.token_buffer:
             self.token_buffer[token] = deque(maxlen=self.post_per_min)
-
-        self.token_buffer[token].append(time())
+            return True
 
         return self.evaluate_buffer(self.token_buffer[token])
 
@@ -44,7 +45,7 @@ class SampleRate(BasePolicy):
         now = time()
 
         for date in buff:
-            if now - date > 60:
+            if now - date < 60:
                 count += 1
 
         return count < self.post_per_min
@@ -57,8 +58,8 @@ class SampleRate(BasePolicy):
 
         :param response: The response
         """
-        if not self.success_post(response):
-            self.token_buffer[self.last_token].pop()
+        if self.success_post(response):
+            self.token_buffer[self.last_token].append(self.last_request)
 
     @staticmethod
     def success_post(response):

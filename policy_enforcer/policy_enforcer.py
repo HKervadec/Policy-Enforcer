@@ -28,7 +28,7 @@ class PolicyEnforcer():
         self.threads = []
         self.max_thread = max_thread
 
-        self.policy_collection = [AlarmQuota(), AlarmPeriod(1200), SampleRate(10)]
+        self.policy_collection = [AlarmQuota(), AlarmPeriod(1200), SampleRate(5)]
 
         self.chaussette = self.create_chaussette()
 
@@ -139,7 +139,7 @@ if __name__ == "__main__":
                         default=9001,
                         type=int,
                         dest="listening_port",
-                        help="The port to listen.")
+                        help="The port to listen.\nDefault is 9001.")
     parser.add_argument("-a", "--api_address",
                         default="qos107.research.att.com",
                         type=str,
@@ -149,12 +149,12 @@ if __name__ == "__main__":
                         default="8777",
                         type=int,
                         dest="api_port",
-                        help="The port of the API.")
+                        help="The port of the API.\nDefault is 8777.")
     parser.add_argument("-t", "--max_thread",
                         default=5,
                         type=int,
                         dest="max_thread",
-                        help="The maximum thread to process the requests.")
+                        help="The maximum thread to process the requests.\nDefault is 5.")
 
     args = parser.parse_args()
 
