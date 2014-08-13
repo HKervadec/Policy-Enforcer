@@ -16,18 +16,21 @@ class PolicyEnforcer():
     def __init__(self, ext_port=9001,
                  int_address='qos107.research.att.com',
                  int_port=8777,
-                 max_thread=5):
+                 max_thread=2):
         """
         :param ext_port: int the port to access the policy enforcer
         :param int_address: str the address of the api
         :param int_port: int the port of the api
+        :param max_thread: int The maximum of threads for the request processing.
         """
         self.ext_port = ext_port
         self.int_address = int_address
         self.int_port = int_port
+
+        self.threads = []
         self.max_thread = max_thread
 
-        self.policy_collection = [AlarmQuota(), AlarmPeriod(1200), SampleRate(1)]
+        self.policy_collection = [AlarmQuota(), AlarmPeriod(1200), SampleRate(10)]
 
         self.chaussette = self.create_chaussette()
 
@@ -50,17 +53,32 @@ class PolicyEnforcer():
         Main loop to process requests.
 
         Wait for a request, then give the socket to the process_request method.
+        Create a new thread for each request processed.
+
+        If we got the maximum number of threads (self.max_thread), will wait until
+        at least one of them is done.
 
         :return: Return nothing
         :rtype: None
         """
         while True:
-            if threading.active_count() > self.max_thread:
+            self.trim_threads()
+            if len(self.threads) >= self.max_thread:
+                print("Max Threads")
                 continue
 
             (chaussette_client, address) = self.chaussette.accept()
 
-            threading.Thread(target=self.process_request, args=[chaussette_client]).start()
+            self.threads.append(threading.Thread(target=self.process_request, args=[chaussette_client]))
+            self.threads[-1].start()
+
+    def trim_threads(self):
+        """
+        Will remove the dead threads from the self.threads list.
+        """
+        for thread in self.threads:
+            if not thread.is_alive():
+                self.threads.remove(thread)
 
     def process_request(self, chaussette_client):
         """
