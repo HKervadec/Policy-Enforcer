@@ -3,6 +3,7 @@
 import socket
 import re
 import threading
+import argparse
 
 from external_com import ExternalManager
 from internal_com import InternalManager
@@ -13,19 +14,16 @@ from policy.sample_rate import SampleRate
 
 
 class PolicyEnforcer():
-    def __init__(self, ext_port=9001,
-                 int_address='qos107.research.att.com',
-                 int_port=8777,
-                 max_thread=2):
+    def __init__(self, listening_port, api_address, api_port, max_thread):
         """
-        :param ext_port: int the port to access the policy enforcer
-        :param int_address: str the address of the api
-        :param int_port: int the port of the api
+        :param listening_port: int the port to access the policy enforcer
+        :param api_address: str the address of the api
+        :param api_port: int the port of the api
         :param max_thread: int The maximum of threads for the request processing.
         """
-        self.ext_port = ext_port
-        self.int_address = int_address
-        self.int_port = int_port
+        self.ext_port = listening_port
+        self.int_address = api_address
+        self.int_port = api_port
 
         self.threads = []
         self.max_thread = max_thread
@@ -135,6 +133,34 @@ class PolicyEnforcer():
 
 # ##########################
 if __name__ == "__main__":
-    pe = PolicyEnforcer()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-P", "--listening_port",
+                        default=9001,
+                        type=int,
+                        dest="listening_port",
+                        help="The port to listen.")
+    parser.add_argument("-a", "--api_address",
+                        default="qos107.research.att.com",
+                        type=str,
+                        dest="api_address",
+                        help="The address of the API.")
+    parser.add_argument("-p", "--api_port",
+                        default="8777",
+                        type=int,
+                        dest="api_port",
+                        help="The port of the API.")
+    parser.add_argument("-t", "--max_thread",
+                        default=5,
+                        type=int,
+                        dest="max_thread",
+                        help="The maximum thread to process the requests.")
+
+    args = parser.parse_args()
+
+    pe = PolicyEnforcer(listening_port=args.listening_port,
+                        api_address=args.api_address,
+                        api_port=args.api_port,
+                        max_thread=args.max_thread)
 
     pe.run()
