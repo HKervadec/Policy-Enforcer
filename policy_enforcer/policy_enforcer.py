@@ -5,8 +5,10 @@ import re
 import threading
 import argparse
 
-from external_com import ExternalManager
-from internal_com import InternalManager
+from time import sleep
+
+from client_com import ClientCom
+from api_com import APICom
 
 from policy.alarm_quota import AlarmQuota
 from policy.alarm_period import AlarmPeriod
@@ -64,7 +66,8 @@ class PolicyEnforcer():
         while True:
             self.trim_threads()
             if len(self.threads) >= self.max_thread:
-                print("Max Threads")
+                print("Max Threads (%d). Waiting for one to finish." % self.max_thread)
+                sleep(1)
                 continue
 
             (chaussette_client, address) = self.chaussette.accept()
@@ -85,16 +88,16 @@ class PolicyEnforcer():
         :param chaussette_client: socket.socket Socket from the client
         :return: None
         """
-        ext_manager = ExternalManager(chaussette_client, self.ext_port)
-        int_manager = InternalManager(self.int_address, self.int_port)
+        client_com = ClientCom(chaussette_client, self.ext_port)
+        api_com = APICom(self.int_address, self.int_port)
 
-        request = ext_manager.receive_request()
+        request = client_com.receive_request()
         decision = self.test_request(request)
 
-        response = int_manager.get_response(request, decision, self.ext_port)
+        response = api_com.get_response(request, decision, self.ext_port)
         self.analyze_response(response)
 
-        ext_manager.send_response(response)
+        client_com.send_response(response)
 
     def test_request(self, request):
         """
@@ -109,15 +112,13 @@ class PolicyEnforcer():
         """
         split_request = re.split('\r\n', request)
 
-        result = ""
-
         for policy in self.policy_collection:
             result = policy.test_request(split_request)
 
             if result:
                 return result
 
-        return result
+        return ""
 
     def analyze_response(self, response):
         """

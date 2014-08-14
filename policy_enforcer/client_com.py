@@ -4,7 +4,7 @@ import socket
 import re
 
 
-class ExternalManager():
+class ClientCom():
     def __init__(self, chaussette_client, ext_port=9001):
         """
         :param ext_port: int The port to listen

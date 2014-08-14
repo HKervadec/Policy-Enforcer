@@ -4,6 +4,7 @@
 class BasePolicy():
     def __init__(self):
         self.apply_policy = False
+        self.error_template = '{"error_message": {"debuginfo": null, "faultcode": "PolicyEnforcer", "faultstring": "%s"}}'
 
     def test_request(self, s_request):
         """
@@ -18,7 +19,10 @@ class BasePolicy():
 
         self.apply_policy = True
 
-        return self.decide_fate(s_request)
+        if not self.decide_fate(s_request):
+            return self.error_template % self.gen_error_message()
+
+        return ""
 
     def identify_request(self, s_request):
         """
@@ -35,7 +39,16 @@ class BasePolicy():
         Decide the fate of the request.
 
         :param s_request: [str*] The request, as an array of strings
-        :return: "" is will be send to the API, a string with explanation otherwise
+        :return: True if it will be send to the API, False otherwise.
+        :rtype: int
+        """
+        raise NotImplementedError
+
+    def gen_error_message(self):
+        """
+        Generate an error message in case of refused request.
+
+        :return: The [customized] error message
         :rtype: str
         """
         raise NotImplementedError

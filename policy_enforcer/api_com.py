@@ -3,7 +3,7 @@
 import socket
 
 
-class InternalManager():
+class APICom():
     def __init__(self, int_address, int_port):
         """
         :param int_address: str The address of the API

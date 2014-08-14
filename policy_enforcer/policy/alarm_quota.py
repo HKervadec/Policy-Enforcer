@@ -25,10 +25,10 @@ class AlarmQuota(BasePolicy):
         if not token in self.token_memory:
             self.token_memory[token] = 0
 
-        if not self.token_memory[token] < self.max_alarm:
-            return "Defined already too much alarms."
+        return self.token_memory[token] < self.max_alarm
 
-        return ""
+    def gen_error_message(self):
+        return "Defined already too much alarms.\nMax: %d" % self.max_alarm
 
     def test_response(self, response):
         """
