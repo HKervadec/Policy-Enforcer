@@ -10,11 +10,11 @@ class BasePolicy():
         Test a request
 
         :param s_request: [str*] The request, as an array of strings
-        :return: True is pass the test, False otherwise
-        :rtype: bool
+        :return: "" is pass the test, a string with explanation otherwise
+        :rtype: str
         """
         if not self.identify_request(s_request):
-            return True
+            return ""
 
         self.apply_policy = True
 
@@ -35,8 +35,8 @@ class BasePolicy():
         Decide the fate of the request.
 
         :param s_request: [str*] The request, as an array of strings
-        :return: True is will be send to the API, False otherwise
-        :rtype: bool
+        :return: "" is will be send to the API, a string with explanation otherwise
+        :rtype: str
         """
         raise NotImplementedError
 

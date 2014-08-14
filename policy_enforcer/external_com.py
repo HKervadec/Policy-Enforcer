@@ -64,5 +64,7 @@ class ExternalManager():
         :param response: str The response
         :rtype: None
         """
+        print("Sending response...")
+
         self.chaussette_client.send(response)
         self.chaussette_client.shutdown(socket.SHUT_RDWR) # Always shut down your chaussette

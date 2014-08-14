@@ -11,7 +11,6 @@ class InternalManager():
         """
         self.address = int_address
         self.port = int_port
-        # self.chaussette = None
         self.chaussette = self.create_chaussette()
 
     def send_request(self, request, ext_port):
@@ -25,14 +24,11 @@ class InternalManager():
         :return: The API response
         :rtype: str
         """
-        # self.chaussette = self.create_chaussette()
 
         request = self.adapt_request(request, ext_port)
 
         print(repr(request))
         self.chaussette.send(request)
-
-        # return self.receive_response()
 
     def adapt_request(self, original_request, ext_port=9001):
         """
@@ -86,13 +82,13 @@ class InternalManager():
         Otherwise, return a predefined string.
 
         :param request: str
-        :param decision: bool The test decision. Is false, the request won't be processed.
-        :return: API response if decision is true, "fgsfds" otherwise
-        "rtype" str
+        :param decision: str The test decision. If different from "", request not processed, and return it instead.
+        :return: API response if decision is true, decision otherwise
+        :rtype: str
         """
         if decision:
-            self.send_request(request, ext_port)
+            return decision
 
-            return self.receive_response()
+        self.send_request(request, ext_port)
 
-        return "fgsfds"
+        return self.receive_response()

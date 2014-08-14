@@ -23,9 +23,12 @@ class AlarmPeriod(BasePolicy):
         period = re.match('.*"period": (\d+)\}.*', s_request[-1])
 
         if not period:
-            return True
+            return ""
 
-        return int(period.group(1)) <= self.max_period
+        if not int(period.group(1)) <= self.max_period:
+            return "Alarm period is too damn long."
+
+        return ""
 
     def test_response(self, response):
         pass

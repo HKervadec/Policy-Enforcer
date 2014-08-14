@@ -31,6 +31,7 @@ class PolicyEnforcer():
         self.policy_collection = [AlarmQuota(), AlarmPeriod(1200), SampleRate(5)]
 
         self.chaussette = self.create_chaussette()
+        print("Init complete.")
 
     def create_chaussette(self):
         """
@@ -59,6 +60,7 @@ class PolicyEnforcer():
         :return: Return nothing
         :rtype: None
         """
+        print("Entering main loop.\nAwaiting for connections.")
         while True:
             self.trim_threads()
             if len(self.threads) >= self.max_thread:
@@ -92,7 +94,6 @@ class PolicyEnforcer():
         response = int_manager.get_response(request, decision, self.ext_port)
         self.analyze_response(response)
 
-        print("Sending response...")
         ext_manager.send_response(response)
 
     def test_request(self, request):
@@ -100,19 +101,21 @@ class PolicyEnforcer():
         Test the request for every policy in the collection (self.policy_collection)
         It will call their test_request methods.
 
-        Will do every test, even if one already said no.
+        Stop at the first test that return a non empty string.
 
         :param request: str The request
-        :return: True if pass all the test, False otherwise
-        :rtype: bool
+        :return: "" if ok, String with explanation otherwise.
+        :rtype: str
         """
         split_request = re.split('\r\n', request)
 
-        result = True
+        result = ""
 
         for policy in self.policy_collection:
-            if not policy.test_request(split_request):
-                result = False
+            result = policy.test_request(split_request)
+
+            if result:
+                return result
 
         return result
 

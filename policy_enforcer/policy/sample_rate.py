@@ -29,9 +29,12 @@ class SampleRate(BasePolicy):
 
         if not token in self.token_buffer:
             self.token_buffer[token] = deque(maxlen=self.post_per_min)
-            return True
+            return ""
 
-        return self.evaluate_buffer(self.token_buffer[token])
+        if not self.evaluate_buffer(self.token_buffer[token]):
+            return "Pushing samples too fast."
+
+        return ""
 
     def evaluate_buffer(self, buff):
         """

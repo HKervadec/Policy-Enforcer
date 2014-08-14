@@ -6,15 +6,16 @@ from common import extract_token, identify_create_alarm
 
 
 class AlarmQuota(BasePolicy):
-    def __init__(self):
+    def __init__(self, max_alarm=2):
         BasePolicy.__init__(self)
 
         self.is_alarm = False
         self.token_memory = {}
         self.last_token = ""
 
+        self.max_alarm = max_alarm
+
     def identify_request(self, s_request):
-        # return s_request[0] == 'POST /v2/alarms HTTP/1.1'
         return identify_create_alarm(s_request)
 
     def decide_fate(self, s_request):
@@ -24,7 +25,10 @@ class AlarmQuota(BasePolicy):
         if not token in self.token_memory:
             self.token_memory[token] = 0
 
-        return self.token_memory[token] < 2
+        if not self.token_memory[token] < self.max_alarm:
+            return "Defined already too much alarms."
+
+        return ""
 
     def test_response(self, response):
         """
