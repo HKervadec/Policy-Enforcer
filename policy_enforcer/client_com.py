@@ -31,6 +31,7 @@ class ClientCom():
             except AttributeError:
                 pass
 
+        print(repr(str_request))
         return str_request
 
     @staticmethod
@@ -68,3 +69,5 @@ class ClientCom():
 
         self.chaussette_client.send(response)
         self.chaussette_client.shutdown(socket.SHUT_RDWR) # Always shut down your chaussette
+
+        print(repr(response))

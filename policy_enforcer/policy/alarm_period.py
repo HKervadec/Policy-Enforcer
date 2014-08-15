@@ -28,7 +28,7 @@ class AlarmPeriod(BasePolicy):
         return int(period.group(1)) <= self.max_period
 
     def gen_error_message(self):
-        return "Alarm period is too damn long.\nMax: %d" % self.max_period
+        return "Alarm period is too damn long. Max: %ds" % self.max_period
 
     def test_response(self, response):
         pass

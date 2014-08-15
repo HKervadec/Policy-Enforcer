@@ -27,7 +27,6 @@ class APICom():
 
         request = self.adapt_request(request, ext_port)
 
-        print(repr(request))
         self.chaussette.send(request)
 
     def adapt_request(self, original_request, ext_port=9001):

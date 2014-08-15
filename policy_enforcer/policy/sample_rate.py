@@ -34,7 +34,7 @@ class SampleRate(BasePolicy):
         return self.evaluate_buffer(self.token_buffer[token])
 
     def gen_error_message(self):
-        return "Pushing samples too fast.\nMax: %d per minute." % self.post_per_min
+        return "Pushing samples too fast. Max: %d per minute." % self.post_per_min
 
     def evaluate_buffer(self, buff):
         """

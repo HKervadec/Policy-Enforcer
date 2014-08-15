@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
+from time import asctime, gmtime
+
 
 class BasePolicy():
     def __init__(self):
         self.apply_policy = False
-        self.error_template = '{"error_message": {"debuginfo": null, "faultcode": "PolicyEnforcer", "faultstring": "%s"}}'
+        self.error_header_template = "HTTP/1.0 403 Forbidden\r\nDate: %s GMT\r\nContent-Type: application/json\r\nContent-Length: %d"
+        self.error_body_template = '{"error_message": {"debuginfo": null, "faultcode": "PolicyEnforcer", "faultstring": "%s"}}'
 
     def test_request(self, s_request):
         """
@@ -20,9 +23,14 @@ class BasePolicy():
         self.apply_policy = True
 
         if not self.decide_fate(s_request):
-            return self.error_template % self.gen_error_message()
+            print("Request rejected.")
+            return self.polish_error_message(self.error_body_template % self.gen_error_message())
 
         return ""
+
+    def polish_error_message(self, body):
+        header = self.error_header_template % (asctime(gmtime()), len(body))
+        return "%s\r\n\r\n%s" % (header, body)
 
     def identify_request(self, s_request):
         """
