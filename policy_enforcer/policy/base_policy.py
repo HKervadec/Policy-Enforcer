@@ -9,52 +9,61 @@ class BasePolicy():
         self.error_header_template = "HTTP/1.0 403 Forbidden\r\nDate: %s GMT\r\nContent-Type: application/json\r\nContent-Length: %d"
         self.error_body_template = '{"error_message": {"debuginfo": null, "faultcode": "PolicyEnforcer", "faultstring": "%s"}}'
 
-    def test_request(self, s_request):
+    def test_request(self, a_request):
         """
         Test a request
 
-        :param s_request: [str*] The request, as an array of strings
+        :param a_request: [str*] The request, as an array of strings
         :return: "" is pass the test, a string with explanation otherwise
         :rtype: str
         """
-        if not self.identify_request(s_request):
+        if not self.identify_request(a_request):
             return ""
 
         self.apply_policy = True
 
-        if not self.decide_fate(s_request):
+        if not self.decide_fate(a_request):
             print("Request rejected.")
             return self.polish_error_message(self.error_body_template % self.gen_error_message())
 
         return ""
 
     def polish_error_message(self, body):
+        """
+        Generate the final error message, with both header and body.
+
+        :param body: str The error body
+        :return: The error Message
+        :rtype: str
+        """
         header = self.error_header_template % (asctime(gmtime()), len(body))
         return "%s\r\n\r\n%s" % (header, body)
 
-    def identify_request(self, s_request):
+    def identify_request(self, a_request):
         """
-        Find out if the request is managed by this policy.
+        Find out if the request is concerned by this policy.
 
-        :param s_request: [str*] The request, as an array of strings
+        :param a_request: [str*] The request, as an array of strings
         :return: True if this policy manage it, False otherwise
         :rtype: bool
         """
         raise NotImplementedError
 
-    def decide_fate(self, s_request):
+    def decide_fate(self, a_request):
         """
         Decide the fate of the request.
 
-        :param s_request: [str*] The request, as an array of strings
+        :param a_request: [str*] The request, as an array of strings
         :return: True if it will be send to the API, False otherwise.
-        :rtype: int
+        :rtype: bool
         """
         raise NotImplementedError
 
     def gen_error_message(self):
         """
-        Generate an error message in case of refused request.
+        Generate an error message.
+
+        Used in case of refused request.
 
         :return: The [customized] error message
         :rtype: str

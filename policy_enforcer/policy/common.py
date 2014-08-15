@@ -19,5 +19,12 @@ def extract_token(s_request):
             return grouped.group(1)
 
 
-def identify_create_alarm(s_request):
-    return s_request[0] == 'POST /v2/alarms HTTP/1.1'
+def identify_create_alarm(a_request):
+    """
+    Identify a request to create an alarm.
+
+    :param a_request: [str*] The request, as an array of strings
+    :return: True if is one, False otherwise
+    :rtype: bool
+    """
+    return a_request[0] == 'POST /v2/alarms HTTP/1.1'

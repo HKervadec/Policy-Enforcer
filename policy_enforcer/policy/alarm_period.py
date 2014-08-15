@@ -13,14 +13,14 @@ class AlarmPeriod(BasePolicy):
 
         self.max_period = max_period
 
-    def identify_request(self, s_request):
-        return identify_create_alarm(s_request)
+    def identify_request(self, a_request):
+        return identify_create_alarm(a_request)
 
-    def decide_fate(self, s_request):
+    def decide_fate(self, a_request):
         """
         If the period > self.max_period, return False
         """
-        period = re.match('.*"period": (\d+)\}.*', s_request[-1])
+        period = re.match('.*"period": (\d+)\}.*', a_request[-1])
 
         if not period:
             return True

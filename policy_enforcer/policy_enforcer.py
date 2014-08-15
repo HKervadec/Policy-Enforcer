@@ -23,31 +23,40 @@ class PolicyEnforcer():
         :param api_port: int the port of the api
         :param max_thread: int The maximum of threads for the request processing.
         """
-        self.ext_port = listening_port
-        self.int_address = api_address
-        self.int_port = api_port
+        self.listen_port = listening_port
+        self.api_address = api_address
+        self.api_port = api_port
 
         self.threads = []
         self.max_thread = max_thread
 
-        self.policy_collection = [AlarmQuota(), AlarmPeriod(1200), SampleRate(5)]
+        self.policy_collection = []
+        self.add_policies()
 
-        self.chaussette = self.create_chaussette()
+        self.chaussure = self.create_chaussure()
         print("Init complete.")
 
-    def create_chaussette(self):
+    def add_policies(self):
         """
-        Create the listening socket on self.ext_port.
+        Add the policies into the collection.
+        """
+        self.policy_collection.append(AlarmQuota())
+        self.policy_collection.append(AlarmPeriod(1200))
+        self.policy_collection.append(SampleRate(5))
 
-        :return: Socket listening (up to 5 connections at the same time).
+    def create_chaussure(self):
+        """
+        Create the listening socket on self.listen_port.
+
+        :return: Socket listening (up to self.max_thread connections at the same time).
         :rtype: socket.socket
         """
-        chaussette = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        chaussette.bind((socket.gethostname(), self.ext_port))
+        chaussure = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        chaussure.bind((socket.gethostname(), self.listen_port))
 
-        chaussette.listen(self.max_thread)
+        chaussure.listen(self.max_thread)
 
-        return chaussette
+        return chaussure
 
     def run(self):
         """
@@ -67,10 +76,10 @@ class PolicyEnforcer():
             self.trim_threads()
             if len(self.threads) >= self.max_thread:
                 print("Max Threads (%d). Waiting for one to finish." % self.max_thread)
-                sleep(1)
+                sleep(1)  # Perf issues
                 continue
 
-            (chaussette_client, address) = self.chaussette.accept()
+            (chaussette_client, address) = self.chaussure.accept()
 
             self.threads.append(threading.Thread(target=self.process_request, args=[chaussette_client]))
             self.threads[-1].start()
@@ -86,15 +95,14 @@ class PolicyEnforcer():
     def process_request(self, chaussette_client):
         """
         :param chaussette_client: socket.socket Socket from the client
-        :return: None
         """
-        client_com = ClientCom(chaussette_client, self.ext_port)
-        api_com = APICom(self.int_address, self.int_port)
+        client_com = ClientCom(chaussette_client)
+        api_com = APICom(self.api_address, self.api_port)
 
         request = client_com.receive_request()
         decision = self.test_request(request)
 
-        response = api_com.get_response(request, decision, self.ext_port)
+        response = api_com.get_response(request, decision, self.listen_port)
         self.analyze_response(response)
 
         client_com.send_response(response)
@@ -107,7 +115,7 @@ class PolicyEnforcer():
         Stop at the first test that return a non empty string.
 
         :param request: str The request
-        :return: "" if ok, String with explanation otherwise.
+        :return: "" if ok, error message otherwise.
         :rtype: str
         """
         split_request = re.split('\r\n', request)
@@ -122,11 +130,14 @@ class PolicyEnforcer():
 
     def analyze_response(self, response):
         """
-        Will test the API response for each policy in the collection (self.policy_collection)
+        Will test the response for each policy in the collection (self.policy_collection)
         It will call their analyze_response methods.
 
+        Fun fact: Even if the request is rejected, the error message will be analyzed.
+        TODO: Change it.
+
         Can be useful for quota system for instance: increment the utilization
-        only if the response is not an error.
+        only if the response was a success.
 
         :param response: str The response
         :rtype: None

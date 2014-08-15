@@ -15,11 +15,14 @@ class AlarmQuota(BasePolicy):
 
         self.max_alarm = max_alarm
 
-    def identify_request(self, s_request):
-        return identify_create_alarm(s_request)
+    def identify_request(self, a_request):
+        return identify_create_alarm(a_request)
 
-    def decide_fate(self, s_request):
-        token = extract_token(s_request)
+    def decide_fate(self, a_request):
+        """
+        Reject if the token has already too much alarms.
+        """
+        token = extract_token(a_request)
         self.last_token = token
 
         if not token in self.token_memory:
@@ -37,7 +40,7 @@ class AlarmQuota(BasePolicy):
         If the alarm creation was a success, it will increment
         the counter for the last token used.
 
-        :param response: The response
+        :param response: str The response
         """
         if "HTTP/1.0 201 Created" in response:
             self.token_memory[self.last_token] += 1

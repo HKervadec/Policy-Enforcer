@@ -5,11 +5,10 @@ import re
 
 
 class ClientCom():
-    def __init__(self, chaussette_client, ext_port=9001):
+    def __init__(self, chaussette_client):
         """
-        :param ext_port: int The port to listen
+        :chaussette_client: socket.socket The socket connected to the client.
         """
-        self.ext_port = ext_port
         self.chaussette_client = chaussette_client
 
     def receive_request(self):
@@ -46,13 +45,13 @@ class ClientCom():
         if not '\r\n\r\n' in request:
             return False
 
-        splitted = re.split(r'\r\n', request)
+        parts = re.split(r'\r\n', request)
 
-        for item in splitted:
+        for item in parts:
             grouped = re.match(r"Content-Length: (\d+)", item)
             if grouped:
                 size = int(grouped.group(1))
-                real_size = len(splitted[-1])
+                real_size = len(parts[-1])
 
                 return real_size == size
 

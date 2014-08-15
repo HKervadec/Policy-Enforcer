@@ -18,11 +18,17 @@ class SampleRate(BasePolicy):
 
         self.post_per_min = post_per_minute
 
-    def identify_request(self, s_request):
-        return 'POST /v2/meters/' in s_request[0]
+    def identify_request(self, a_request):
+        return 'POST /v2/meters/' in a_request[0]
 
-    def decide_fate(self, s_request):
-        token = extract_token(s_request)
+    def decide_fate(self, a_request):
+        """
+        Reject if too much successful post last minute.
+
+        :param a_request:
+        :return:
+        """
+        token = extract_token(a_request)
         self.last_token = token
 
         self.last_request = time()
@@ -40,7 +46,7 @@ class SampleRate(BasePolicy):
         """
         Will count how much of the last posts have been made in the last minute
 
-        :param buff: The buffer
+        :param buff: deque(maxlen=self.post_per_min) The buffer
         :return: True if less than the max post per minute, false otherwise
         :rtype: bool
         """
@@ -57,9 +63,9 @@ class SampleRate(BasePolicy):
         """
         Will test the response.
 
-        If the post was successful, will update the last post time.
+        If the post was successful, will append the last post time into the token_buffer.
 
-        :param response: The response
+        :param response: str The response
         """
         if self.success_post(response):
             self.token_buffer[self.last_token].append(self.last_request)
